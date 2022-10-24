@@ -31,34 +31,48 @@ class _MainPageState extends State<MainPage> {
           const SizedBox(
             height: 50,
           ),
-          Container(
-              color: Colors.black12,
-              height: 50,
-              width: 150,
-              child: StreamBuilder<bool>(
-                  stream: flutterBlue.isScanning,
-                  initialData: false,
-                  builder: (context, snapshot) {
-                    if (snapshot.data!) {
-                      return TextButton(
-                        child: const Text(
-                          stopScanText,
-                          style: TextStyle(fontSize: 25),
-                        ),
-                        onPressed: () => flutterBlue.stopScan(),
-                      );
-                    } else {
-                      return TextButton(
-                        child: const Text(
-                          startScanText,
-                          style: TextStyle(fontSize: 25),
-                        ),
-                        onPressed: () => flutterBlue.startScan(
-                            timeout: const Duration(seconds: 4)),
-                      );
-                    }
-                  }))
+          StreamBuilder<bool>(
+            stream: flutterBlue.isScanning,
+            initialData: false,
+            builder: (context, snapshot) {
+              if (snapshot.data!) {
+                return _buildScanButton(
+                  Colors.amber,
+                  stopScanText,
+                  () => flutterBlue.stopScan(),
+                );
+              } else {
+                return _buildScanButton(
+                  Colors.black12,
+                  startScanText,
+                  () => flutterBlue.startScan(
+                    timeout: const Duration(seconds: scanTime),
+                  ),
+                );
+              }
+            },
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildScanButton(
+    Color backgroundColor,
+    String title,
+    Function onPressed,
+  ) {
+    return Container(
+      color: backgroundColor,
+      height: 50,
+      width: 150,
+      child: TextButton(
+        child: Text(
+          title,
+          style: const TextStyle(fontSize: 25),
+        ),
+        onPressed: () =>
+            flutterBlue.startScan(timeout: const Duration(seconds: 4)),
       ),
     );
   }
