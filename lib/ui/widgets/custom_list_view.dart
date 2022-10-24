@@ -4,40 +4,47 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../../src/constants.dart';
 import '../../src/enums.dart';
+import 'device_info.dart';
 
 class CustomListView extends StatefulWidget {
-  final List<BluetoothDevice> devices;
-  final DeviceSearchStatus searchStatus;
-
   const CustomListView({
     super.key,
     required this.devices,
     required this.searchStatus,
   });
 
+  final List<BluetoothDevice> devices;
+  final DeviceSearchStatus searchStatus;
+
   @override
   State<CustomListView> createState() => _CustomListViewState();
 }
 
 class _CustomListViewState extends State<CustomListView> {
+  BluetoothDevice? device;
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 400,
-      child: StreamBuilder<List<ScanResult>>(
-        stream: flutterBlue.scanResults,
-        initialData: const [],
-        builder: (context, snapshot) {
-          List<ScanResult> scanResults = [];
+    return StreamBuilder<List<ScanResult>>(
+      stream: flutterBlue.scanResults,
+      initialData: const [],
+      builder: (context, snapshot) {
+        List<ScanResult> scanResults = [];
 
-          for (var r in snapshot.data!) {
-            if (r.device.name.isNotEmpty) {
-              scanResults.add(r);
-            }
+        for (var r in snapshot.data!) {
+          if (r.device.name.isNotEmpty) {
+            scanResults.add(r);
           }
-          return _buildChild(scanResults);
-        },
-      ),
+        }
+        return Column(
+          children: [
+            SizedBox(height: 400, child: _buildChild(scanResults)),
+            device != null
+                ? DeviceInfo(device: device!)
+                : const SizedBox.shrink(),
+          ],
+        );
+      },
     );
   }
 
@@ -48,17 +55,25 @@ class _CustomListViewState extends State<CustomListView> {
           children: [
             for (int i = 0; i < scanResults.length; i++)
               ListTile(
+                isThreeLine: false,
                 title: Text(scanResults[i].device.name,
                     style: const TextStyle(fontSize: 30)),
                 minVerticalPadding: 10,
                 subtitle: Text(
-                  'MAC: ${scanResults[i].device.id}',
+                  'MAC: ${scanResults[i].device.id}\nConnectable: ${scanResults[i].advertisementData.connectable}',
                   style: const TextStyle(fontSize: 20),
                 ),
-                onTap: () {
-                  throw UnimplementedError('Implement bluetooth connection');
-                },
-              )
+                onTap: (scanResults[i].advertisementData.connectable)
+                    ? () {
+                        scanResults[i].device.connect();
+                        setState(
+                          () {
+                            device = scanResults[i].device;
+                          },
+                        );
+                      }
+                    : null,
+              ),
           ],
         ),
       );
