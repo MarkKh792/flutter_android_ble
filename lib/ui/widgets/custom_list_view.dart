@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_android_ble/main.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import '../../src/constants.dart';
@@ -23,33 +24,35 @@ class _CustomListViewState extends State<CustomListView> {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 400,
-      child: _buildChild(widget.searchStatus, widget.devices),
+      child: StreamBuilder<List<ScanResult>>(
+        stream: flutterBlue.scanResults,
+        initialData: const [],
+        builder: (context, snapshot) {
+          List<ScanResult> scanResults = [];
+
+          for (var r in snapshot.data!) {
+            if (r.device.name.isNotEmpty) {
+              scanResults.add(r);
+            }
+          }
+          return _buildChild(scanResults);
+        },
+      ),
     );
   }
 
-  Widget _buildChild(
-      DeviceSearchStatus searchStatus, List<BluetoothDevice> devices) {
-    if (searchStatus == DeviceSearchStatus.inProgress) {
-      return const Center(
-        child: SizedBox(
-          height: 100,
-          width: 100,
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
-    if (searchStatus == DeviceSearchStatus.searchSucceeded) {
+  Widget _buildChild(List<ScanResult> scanResults) {
+    if (scanResults.isNotEmpty) {
       return Scrollbar(
         child: ListView(
           children: [
-            for (int i = 0; i < widget.devices.length; i++)
+            for (int i = 0; i < scanResults.length; i++)
               ListTile(
-                title: Text(widget.devices[i].name,
+                title: Text(scanResults[i].device.name,
                     style: const TextStyle(fontSize: 30)),
                 minVerticalPadding: 10,
                 subtitle: Text(
-                  'MAC: ${widget.devices[i].id}',
+                  'MAC: ${scanResults[i].device.id}',
                   style: const TextStyle(fontSize: 20),
                 ),
                 onTap: () {

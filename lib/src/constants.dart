@@ -1,2 +1,3 @@
 const String noDevicesFoundText = 'No bluetooth devices found';
-const String findText = 'Scan';
+const String startScanText = 'Start scan';
+const String stopScanText = 'Stop scan';
