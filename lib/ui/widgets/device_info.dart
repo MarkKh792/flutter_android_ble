@@ -10,11 +10,17 @@ class DeviceInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    int heartRateValue = 0;
+    BluetoothCharacteristic? heartRateCharacteristic;
+
     return StreamBuilder<BluetoothDeviceState>(
       stream: device.state,
       initialData: BluetoothDeviceState.connecting,
       builder: (context, snapshot) {
         if (snapshot.data == BluetoothDeviceState.connected) {
+          List<BluetoothService> services = [];
+          _getServices().then((value) => services = value);
+
           return Column(
             children: [
               Text('Connected to: ${device.name} (${device.id})'),
@@ -30,6 +36,23 @@ class DeviceInfo extends StatelessWidget {
                   onPressed: () => device.disconnect(),
                 ),
               ),
+              TextButton(
+                  onPressed: () async {
+                    if (heartRateCharacteristic == null) {
+                      _getHeartRateCharacteristic(services).then((value) {
+                        if (value != null) {
+                          heartRateCharacteristic = value;
+                          heartRateCharacteristic!.setNotifyValue(true);
+                          heartRateCharacteristic!.value.listen((value) {
+                            if (value.isNotEmpty) {
+                              print(value[1]);
+                            }
+                          });
+                        }
+                      });
+                    }
+                  },
+                  child: const Text('Get heart rate'))
             ],
           );
         } else if (snapshot.data != BluetoothDeviceState.disconnected) {
@@ -48,4 +71,26 @@ class DeviceInfo extends StatelessWidget {
       },
     );
   }
+
+  Future<List<BluetoothService>> _getServices() async {
+    List<BluetoothService> services = await device.discoverServices();
+    services.forEach((element) {
+      print('UUID: ${element.uuid}');
+    });
+    return services;
+  }
+}
+
+Future<BluetoothCharacteristic?> _getHeartRateCharacteristic(
+  List<BluetoothService> services,
+) async {
+  BluetoothCharacteristic? heartRateCharacteristic;
+
+  for (var element in services) {
+    if (element.uuid == Guid(heartRateMeasurementCharacteristicUuid)) {
+      heartRateCharacteristic = element.characteristics.first;
+    }
+  }
+
+  return heartRateCharacteristic;
 }
