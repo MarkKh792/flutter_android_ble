@@ -10,7 +10,6 @@ class DeviceInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int heartRateValue = 0;
     BluetoothCharacteristic? heartRateCharacteristic;
 
     return StreamBuilder<BluetoothDeviceState>(
@@ -37,22 +36,23 @@ class DeviceInfo extends StatelessWidget {
                 ),
               ),
               TextButton(
-                  onPressed: () async {
-                    if (heartRateCharacteristic == null) {
-                      _getHeartRateCharacteristic(services).then((value) {
-                        if (value != null) {
-                          heartRateCharacteristic = value;
-                          heartRateCharacteristic!.setNotifyValue(true);
-                          heartRateCharacteristic!.value.listen((value) {
-                            if (value.isNotEmpty) {
-                              print(value[1]);
-                            }
-                          });
-                        }
-                      });
-                    }
-                  },
-                  child: const Text('Get heart rate'))
+                onPressed: () async {
+                  if (heartRateCharacteristic == null) {
+                    _getHeartRateCharacteristic(services).then((value) {
+                      if (value != null) {
+                        heartRateCharacteristic = value;
+                        heartRateCharacteristic!.setNotifyValue(true);
+                        heartRateCharacteristic!.value.listen((value) {
+                          if (value.isNotEmpty) {
+                            print(value[1]);
+                          }
+                        });
+                      }
+                    });
+                  }
+                },
+                child: const Text('Get heart rate'),
+              ),
             ],
           );
         } else if (snapshot.data != BluetoothDeviceState.disconnected) {

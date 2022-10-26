@@ -24,7 +24,6 @@ class _MainPageState extends State<MainPage> {
         child: Column(
           children: [
             CustomListView(
-              devices: devices,
               searchStatus: noDevicesFound,
             ),
             const SizedBox(

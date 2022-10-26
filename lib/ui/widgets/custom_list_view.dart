@@ -9,11 +9,9 @@ import 'device_info.dart';
 class CustomListView extends StatefulWidget {
   const CustomListView({
     super.key,
-    required this.devices,
     required this.searchStatus,
   });
 
-  final List<BluetoothDevice> devices;
   final DeviceSearchStatus searchStatus;
 
   @override
